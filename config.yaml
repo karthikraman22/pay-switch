@@ -1,0 +1,42 @@
+endpoints:
+  - endpoint:
+      id: "endpoint-1"
+      desc: "Route 1-ISO 8583 Server Listener"
+      type: "server"
+      hostnport: "127.0.0.1:9000"
+      proto: "tcp/8583"
+      tls: "no"
+      auth: "whitelist"
+  - endpoint:
+      id: "endpoint-2"
+      desc: "Route 2-ISO 8583 Client"
+      type: "client"
+      hostnport: "127.0.0.1:9001"
+      proto: "tcp/8583"
+      tls: "no"
+      auth: "keyexchange"
+  - endpoint:
+      id: "endpoint-3"
+      desc: "Route 3-ISO 8583 Host Client"
+      type: "client"
+      hostnport: "127.0.0.1:9002"
+      proto: "tcp/8583"
+      tls: "no"
+      auth: "none"
+
+flows:
+  - flow:
+      id: "flow-1"
+      from: "any"
+      to: "endpoint-2"
+      criteria: "bin"
+        bins:
+          - 416892
+          - 435677
+  - flow:
+      id: "flow-2"
+      from: "any"
+      to: "endpoint-3"
+      criteria: "all"
+
+
