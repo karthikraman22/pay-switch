@@ -33,10 +33,19 @@ func NewEndpointMgr(logger *zap.Logger) *EndpointMgr {
 	return &EndpointMgr{endpoints: map[string]Endpoint{}, logger: logger}
 }
 
+func (epm *EndpointMgr) Shutdown(ctx context.Context) {
+	for _, e := range epm.endpoints {
+		e.Stop(ctx)
+	}
+}
+
 func (epm *EndpointMgr) NewServerEndpoint(cfg *EndpointCfg) (*Endpoint, error) {
 	if cfg.Proto == "tcp/8583" {
 		ep := iso8583.NewIso8583Server(fmt.Sprintf("tcp://%s", cfg.HostNPort), epm.logger)
-		ep.Init()
+		err := ep.Init()
+		if err != nil {
+			return nil, err
+		}
 		ep.Run()
 		epm.endpoints[cfg.Id] = ep
 	}

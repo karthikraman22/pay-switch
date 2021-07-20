@@ -5,24 +5,27 @@ import (
 	"time"
 
 	"github.com/panjf2000/gnet"
+	"github.com/panjf2000/gnet/pool/goroutine"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type Iso8583Server struct {
 	*gnet.EventServer
-	Addr   string
-	Codec  *iso8583Codec
-	mf     *MessageFactory
-	p      Processor
-	logger *zap.Logger
+	Addr       string
+	Codec      *iso8583Codec
+	mf         *MessageFactory
+	p          Processor
+	workerPool *goroutine.Pool
+	logger     *zap.Logger
 }
 
 func NewIso8583Server(addr string, logger *zap.Logger) *Iso8583Server {
 	// TODO: Make the defaults configurable
 	return &Iso8583Server{Addr: addr, Codec: buildIso8583Codec(2), mf: DefaultMessageFactory("iso8583-87.yaml"),
-		p:      NewDefaultProcessor(),
-		logger: logger}
+		p:          NewDefaultProcessor(),
+		workerPool: goroutine.Default(),
+		logger:     logger}
 }
 
 func (s *Iso8583Server) Init() error {
@@ -60,11 +63,12 @@ func (s *Iso8583Server) React(frame []byte, c gnet.Conn) (out []byte, action gne
 	if err := isoMsg.Unpack(frame); err == nil {
 		s.logger.Debug("incoming message", zap.Any("payload", isoMsg))
 		exchange := BuildExchange(isoMsg, nil, c, s.mf)
-		go func() {
-			s.p.Process(exchange)
-			outIsoMsg, _ := exchange.Out.Pack()
-			c.AsyncWrite(outIsoMsg)
-		}()
+		s.p.Process(exchange)
+		if outIsoMsg, err := exchange.Out.Pack(); err == nil && outIsoMsg != nil {
+			s.workerPool.Submit(func() {
+				err := c.AsyncWrite(outIsoMsg)
+			})
+		}
 	} else {
 		s.logger.Error("invalid message received", zap.Error(err))
 	}
@@ -79,5 +83,6 @@ func (s *Iso8583Server) OnOpened(c gnet.Conn) (out []byte, action gnet.Action) {
 
 func (s *Iso8583Server) OnClosed(c gnet.Conn, err error) (action gnet.Action) {
 	s.logger.Info("client disconnected", zap.Any("error", err))
+	s.workerPool.Release()
 	return
 }

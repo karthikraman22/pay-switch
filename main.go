@@ -3,28 +3,27 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"achuala.in/pay-switch/api"
+	"achuala.in/pay-switch/ep"
 	"github.com/gin-gonic/gin"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 )
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	logger, _ := zap.NewDevelopment()
 
 	r := gin.Default()
 
-	api.NewEndpointResource(r, logger)
+	epMgr := ep.NewEndpointMgr(logger)
+
+	api.NewEndpointResource(r, epMgr, logger)
 
 	srv := &http.Server{
 		Addr:    ":9090",
@@ -34,35 +33,29 @@ func main() {
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal("listen", zap.Error(err))
 		}
 	}()
 
-	/*
-		iso8583Server := iso8583.NewIso8583Server("tcp://:9000", logger)
+	// Create context that listens for the interrupt signal from the OS.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-		go func() {
-			if err := gnet.Serve(iso8583Server, iso8583Server.Addr,
-				gnet.WithMulticore(true),
-				gnet.WithCodec(iso8583Server.Codec),
-				gnet.WithTCPKeepAlive(time.Second*30),
-				gnet.WithSocketRecvBuffer(8*1024),
-				gnet.WithSocketSendBuffer(8*1024),
-				gnet.WithReusePort(true),
-				gnet.WithLogger(logger.Sugar()),
-				gnet.WithLogLevel(zapcore.DebugLevel)); err != nil {
-				logger.Fatal("server start failed", zap.Error(err))
-			}
-		}()
-	*/
-	// Register for shutdown events and handle it gracefully
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
-	<-done
-	logger.Info("shutdown initiated...")
+	// Listen for the interrupt signal.
+	<-ctx.Done()
+
+	// The context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Notify the endpoint manager to stop all the endpoints
+	epMgr.Shutdown(ctx)
+
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("server forced to shutdown : ", err)
+		logger.Info("server forced to shutdown : ", zap.Error(err))
 	}
+
 	logger.Info("server shutdown")
 }

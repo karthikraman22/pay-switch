@@ -14,8 +14,8 @@ type EndpointResource struct {
 	logger      *zap.Logger
 }
 
-func NewEndpointResource(r *gin.Engine, logger *zap.Logger) *EndpointResource {
-	epr := &EndpointResource{RouteEngine: r, epMgr: ep.NewEndpointMgr(logger), logger: logger}
+func NewEndpointResource(r *gin.Engine, epMgr *ep.EndpointMgr, logger *zap.Logger) *EndpointResource {
+	epr := &EndpointResource{RouteEngine: r, epMgr: epMgr, logger: logger}
 	epr.addV1Routes()
 	return epr
 }
