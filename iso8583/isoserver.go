@@ -65,9 +65,11 @@ func (s *Iso8583Server) React(frame []byte, c gnet.Conn) (out []byte, action gne
 		exchange := BuildExchange(isoMsg, nil, c, s.mf)
 		s.p.Process(exchange)
 		if outIsoMsg, err := exchange.Out.Pack(); err == nil && outIsoMsg != nil {
-			s.workerPool.Submit(func() {
-				err := c.AsyncWrite(outIsoMsg)
-			})
+			go func() {
+				if err := c.AsyncWrite(outIsoMsg); err != nil {
+					s.logger.Error("error in writing", zap.Error(err))
+				}
+			}()
 		}
 	} else {
 		s.logger.Error("invalid message received", zap.Error(err))
@@ -82,7 +84,7 @@ func (s *Iso8583Server) OnOpened(c gnet.Conn) (out []byte, action gnet.Action) {
 }
 
 func (s *Iso8583Server) OnClosed(c gnet.Conn, err error) (action gnet.Action) {
-	s.logger.Info("client disconnected", zap.Any("error", err))
+	s.logger.Info("client disconnected", zap.Error(err))
 	s.workerPool.Release()
 	return
 }
