@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"achuala.in/pay-switch/ep"
+	"achuala.in/payswitch/ep"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

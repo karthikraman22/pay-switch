@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"achuala.in/pay-switch/iso8583"
+	"achuala.in/payswitch/iso8583"
 	"go.uber.org/zap"
 )
 

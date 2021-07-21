@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"achuala.in/pay-switch/api"
-	"achuala.in/pay-switch/ep"
+	"achuala.in/payswitch/api"
+	"achuala.in/payswitch/ep"
 	"github.com/gin-gonic/gin"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"

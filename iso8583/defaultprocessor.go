@@ -1,8 +1,8 @@
 package iso8583
 
 import (
-	"achuala.in/pay-switch/auth"
-	"achuala.in/pay-switch/core"
+	"achuala.in/payswitch/auth"
+	"achuala.in/payswitch/core"
 	"github.com/google/uuid"
 )
 
@@ -23,7 +23,7 @@ func NewDefaultProcessor() *DefaultProcessor {
 func (dh *DefaultProcessor) Process(exchange *Exchange) error {
 	client, err := core.LoadClientByDeviceId(uuid.NewString())
 	if err != nil {
-		
+
 		return err
 	}
 	err = dh.authenticator.Authenticate(client)

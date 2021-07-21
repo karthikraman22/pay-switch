@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "payhub/imx;imx";
+
+message MxHdr {
+	string MsgId = 1;
+	google.protobuf.Timestamp  createdDateTime = 2;
+}

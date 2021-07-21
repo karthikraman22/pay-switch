@@ -1,8 +1,8 @@
 package iso8583
 
 import (
-	"achuala.in/pay-switch/auth"
-	"achuala.in/pay-switch/core"
+	"achuala.in/payswitch/auth"
+	"achuala.in/payswitch/core"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )

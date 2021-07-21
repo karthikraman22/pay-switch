@@ -1,4 +1,4 @@
-module achuala.in/pay-switch
+module achuala.in/payswitch
 
 go 1.16
 

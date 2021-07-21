@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"achuala.in/pay-switch/core"
+	"achuala.in/payswitch/core"
 )
 
 // Authenticator is

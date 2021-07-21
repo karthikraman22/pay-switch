@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "header.proto";
+
+option go_package = "payhub/imx;imx";
+
+message MxAdm00100101 {
+    MxHdr header = 1;
+    string functionCode = 2;
+    string  correlationId = 3;
+	string participantId = 4;
+}
+
+message MxAdm00200101 {
+    MxHdr header = 1;
+    string functionCode = 2;
+    string  correlationId = 3;
+	string participantId = 4;
+	string status = 5;
+}
