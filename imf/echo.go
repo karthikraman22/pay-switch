@@ -29,7 +29,8 @@ type EchoRs struct {
 
 func Iso8583ToImfEchoRq(isoMsg *lib8583.Message) (*imx.MxAdm00500101, error) {
 	id, _ := isoMsg.GetString(2)
-	ts, _ := isoMsg.GetString(3)
-	hdr := &imx.MxHdr{MsgId: id, CreatedDateTime: timestamppb.New(time.Parse("", ts))}
+	time, _ := isoMsg.GetString(3)
+	ts, _ = time.Parse("MMDDhhmmss", time)
+	hdr := &imx.MxHdr{MsgId: id, CreatedDateTime: timestamppb.New(ts)}
 	return &imx.MxAdm00500101{Header: hdr}, nil
 }
