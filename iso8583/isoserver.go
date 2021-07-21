@@ -62,6 +62,7 @@ func (s *Iso8583Server) React(frame []byte, c gnet.Conn) (out []byte, action gne
 	isoMsg := s.mf.DefaultInstance()
 	if err := isoMsg.Unpack(frame); err == nil {
 		s.logger.Debug("incoming message", zap.Any("payload", isoMsg))
+		//imf.Iso8583ToImfEchoRq(isoMsg)
 		exchange := BuildExchange(isoMsg, nil, c, s.mf)
 		s.p.Process(exchange)
 		if outIsoMsg, err := exchange.Out.Pack(); err == nil && outIsoMsg != nil {
