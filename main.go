@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"achuala.in/payswitch/api"
+	"achuala.in/payswitch/core"
 	"achuala.in/payswitch/ep"
 	"github.com/gin-gonic/gin"
 	_ "go.uber.org/automaxprocs"
@@ -22,8 +23,9 @@ func main() {
 	r := gin.Default()
 
 	epMgr := ep.NewEndpointMgr(logger)
-
+	router := core.NewRouter("localhost:9092")
 	api.NewEndpointResource(r, epMgr, logger)
+	api.NewPaymentResource(r, router, logger)
 
 	srv := &http.Server{
 		Addr:    ":9090",
