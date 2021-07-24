@@ -1,0 +1,51 @@
+version: '3.5'
+
+services:
+
+  nats:
+    image: nats:latest
+    ports:
+     - "6222:6222"
+     - "4222:4222"
+     - "8222:8222"
+    command: -js
+    volumes:
+      - "g:/work/tools/nats-data:/nats/nats-data"
+   
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - "g:/work/tools/redis-data:/redis/redis-data"
+
+  crdb:
+    image: cockroachdb/cockroach:latest
+    ports:
+      - "26257:26257"
+      - "8181:8080"
+    command: start-single-node --insecure
+    volumes:
+      - "g:/work/tools/cockroachdb/cockroach-data/crdb:/cockroach/cockroach-data"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1

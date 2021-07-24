@@ -1,0 +1,14 @@
+Receive->Validate->Transform
+  - Failure -> GenPlatformId->Persist(Redis, Kafka) -> ReplyWith(Failed, PlatformId)
+  - Success -> GenPlatformId->Persist(Redis, Kafka) -> ReplyWith(Accepted, PlatformId)
+
+Kafka->JrnlManager->TblMxJournal
+-
+
+Only Valid Messages -------------->
+Kafka->TxObserver->RegisterEvent(Timeout)
+Kafka->Router
+
+Router->Kafka(MxTopic)
+Kafka->MxFlowProcessor->FlowTemplate
+                      ->RequestDebtor(Redis, Kafka)->Kafka->RequestDispatcher->DebtorResponse(Kafka)

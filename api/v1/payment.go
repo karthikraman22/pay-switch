@@ -1,4 +1,4 @@
-package api
+package v1
 
 import (
 	"net/http"
@@ -24,15 +24,15 @@ func NewPaymentResource(re *gin.Engine, router *core.Router, logger *zap.Logger)
 func (pr *PaymentResource) addV1Routes() {
 	v1 := pr.ginEngine.Group("/v1")
 	{
-		pr.router.AddRoute("payment.initiate")
-		v1.POST("/payment/initiate", pr.initiatePayment)
+		v1.POST("/payment/collect", pr.collectPayment)
 	}
 }
-func (pr *PaymentResource) initiatePayment(c *gin.Context) {
+func (pr *PaymentResource) collectPayment(c *gin.Context) {
 	var epCfg ep.EndpointCfg
 	if err := c.ShouldBindJSON(&epCfg); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusAccepted, nil)
 }
